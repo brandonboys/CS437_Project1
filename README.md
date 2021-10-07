@@ -6,11 +6,17 @@ Enoch Levandovsky,
 Andres Guzman
 
 ## ToDo
-### Prelimiary
+### Setting Up the Data
 - [ ] Task 1
-- [x] <s>Task 2</s>
-- [x] <s>Task 3</s>
-### Project
+- [x] <s>Task 1</s>
+
+### Ranking, Weights, and Snippets
 - [ ] Task 4
 - [ ] Task 5
 - [ ] Task 6
+
+### Backend Server Setup
+- [ ] Task 1
+
+### Hosting the Search Engine
+- [ ] Task 1
