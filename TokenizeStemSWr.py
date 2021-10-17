@@ -4,7 +4,14 @@ from nltk.stem import PorterStemmer
 
 ps = PorterStemmer()
 tokenizer = RegexpTokenizer(r'\w+')
-stop_words = set(stopwords.words('english'))
+stop_words = {}
+try:
+    stop_words = set(stopwords.words('english'))
+except:
+    print('StopWords not found... please download <WordNet> and <StopWords>\nBoth located under corpora')
+    import nltk
+    nltk.download()
+
 
 def tokenizerWithFilter(newText):
     """

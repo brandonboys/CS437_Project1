@@ -1,84 +1,58 @@
-from nltk.corpus import stopwords
-from nltk.tokenize import RegexpTokenizer
-from nltk.stem import PorterStemmer
-import pandas as pd
-import math
-import numpy as np
+from TokenizeStemSWr import tokenizerWithFilter
 from nltk.corpus import wordnet
+import numpy as np
+dict = np.load('inverseIndexTable.npy',allow_pickle='TRUE').item()
 
-
-
-dict #Inverse Index: imported from a picke file
-
-
-
-ps = PorterStemmer()
-tokenizer = RegexpTokenizer(r'\w+')
-stop_words = set(stopwords.words('english'))
-
-def tokenizerWithFilter(newText):
+def querrySuggestor(query):
     """
-    This Function will tokenize and apply filters to an entire sentance... 
-    return a list of words
+    The purpose of this function is to change find synonyms of querry terms so that all tokens in the query are located in the reverse index
+
+    Example Input:
+    #let assume "extravagant" is not in the inverse index but "great" is
+    query = Trumps extravagant policies are great
+    Examples Ouput:
+    query = Trump great policies are great
     """
-    ## split words and remove punctuation
-    tokens = tokenizer.tokenize(newText)
-    filtered_sentence = []
-    for w in tokens:
+
+    #Check if every word exits in the dictionary
+    filiteredQuery = tokenizerWithFilter(query)#['hello', 'thi', 'exampl', 'queri']
+    querrySuggestions = []
+    querrySuggestions.append(query)
+
+    for word in query.split():
+        if len(tokenizerWithFilter(word)) == 0 or (tokenizerWithFilter(word)[0] in dict):
+            #good
+            pass
+        else:
+            #find synoyms
+            synonyms = []
+
+            #create an array of synonyms
+            for syn in wordnet.synsets(word):
+                for l in syn.lemmas():
+                    synonyms.append(l.name())
+                    
+            if len(synonyms) == 0:
+                #no suggestions exist
+                continue #on to next word
+            #check if any synonym exits in index
+            for possibleWord in synonyms:                        
+                if tokenizerWithFilter(possibleWord)[0] in dict:
+                    querrySuggestions.append(query.replace(word,possibleWord,1))
+                    break# looking for synonyms and go to the nextword
+                    
+    if len(querrySuggestions) > 1:
+        i =1
+        print("\nplease select a suggested querry")
+        for pquery in querrySuggestions:
+            print(str(i) + ") " + pquery)
+            i+=1
+        qnum = "notNum"
+        qnum = input()
+        i = 3
+        while qnum.isnumeric() == False or (int(qnum) <=0 or int(qnum) >= i):
+            qnum = input("invalid\n")
+
+        return querrySuggestions[int(qnum)-1]
         
-        ## remove stop words
-        if w not in stop_words:
-
-            #to Lowercase
-            w = w.lower()
-
-            ##lemantize
-            w = ps.stem(w)
-            filtered_sentence.append(w)
-    return filtered_sentence
-    
-
-#Check if every word exits in the dictionary
-query = 'Hello This is an example Query'
-filiteredQuery = tokenizerWithFilter(query)#['hello', 'thi', 'exampl', 'queri']
-
-
-
-for word in filiteredQuery:
-    if word in dict:
-        #good
-        pass
-    else:
-        synonyms = []
-
-
-
-        #create an array of synonyms
-        for syn in wordnet.synsets("active"):
-            for l in syn.lemmas():
-                synonyms.append(l.name())
-                
-        #check if any synonym exits in index
-        for possibleWord in synonyms:
-                     
-            if tokenizerWithFilter(possibleWord)[0] in dict:
-                print(True)
-            else:
-                print(False)
-            #make qury suggestion
-
-synonyms = []
-
-
-
-#create an array of synonyms
-for syn in wordnet.synsets("active"):
-    for l in syn.lemmas():
-        synonyms.append(l.name())
-
-
-for possibleWord in synonyms:
-    if tokenizerWithFilter(possibleWord)[0] in dict:
-        print(True)
-    else:
-        print(False)
+    return query

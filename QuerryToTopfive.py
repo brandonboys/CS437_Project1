@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from TokenizeStemSWr import tokenizerWithFilter
+from ReveseIndexCreator import creatInverseDict
 def COSINE_TD_IDF_Ranking(query):
     """
     Calculating TD-IDF is calculating the importantce of a word compared to a recource    
@@ -15,7 +16,16 @@ def COSINE_TD_IDF_Ranking(query):
      [1323844576344449024,'I mean"," "I don\'t like Biden""," fine. "Biden isn\'t trustworthy","" fine. "Biden seems ugly?". Rude"," but fine. "Biden is a pinemarten." Problem. He is not a pinemarten. And nor is HE A FUCKING SOCIALIST.\n']]
         
     """
-    dict = np.load('inverseIndexTable.npy',allow_pickle='TRUE').item()
+    dict = {}
+    try:
+        dict = np.load('inverseIndexTable.npy',allow_pickle='TRUE').item()
+    except:
+        print('Unable To find inverse Index... We will create one, but it will take extra time')
+        creatInverseDict()
+        dict = np.load('inverseIndexTable.npy',allow_pickle='TRUE').item()
+        print('Done creating reverse index')
+
+
     df = pd.read_pickle('tweetsTable.pickle')
 
     
