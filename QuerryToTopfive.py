@@ -64,7 +64,7 @@ def COSINE_TD_IDF_Ranking(query):
                 rTDIDF = np.append(rTDIDF,((NsT/NT) * (R/RcD)))
             
                     
-        cosineRanks.append((rTDIDF * qTDIDF).sum() /(np.sqrt((rTDIDF**2).sum() * (qTDIDF**2).sum())))
+        cosineRanks.append((rTDIDF * qTDIDF).sum() /(np.sqrt((rTDIDF**2).sum()) * np.sqrt((qTDIDF**2).sum())))
 
     df.TD_IDF = cosineRanks
     tweetID = df.sort_values('TD_IDF',ascending=False).head(5).ID.values
