@@ -5,8 +5,14 @@ Brandon Boys,
 Enoch Levandovsky,
 Andres Guzman
 
+### How to run
+Inside the directory type in this code
+```
+#with out without quotes will work
+python main.py "example query"
+```
 
-requrments
+### requirments
 
 - pip install nltk
 - pip install pandas
