@@ -11,4 +11,3 @@ requrments
 - pip install nltk
 - pip install pandas
 - pip install numpy
-- pip install
