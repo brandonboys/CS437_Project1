@@ -8,9 +8,11 @@ stop_words = {}
 try:
     stop_words = set(stopwords.words('english'))
 except:
-    print('StopWords not found... please download <WordNet> and <StopWords>\nBoth located under corpora')
+    print('StopWords not found... downloading <WordNet> and <StopWords>')
     import nltk
-    nltk.download()
+    nltk.download('wordnet')
+    nltk.download('stopwords')
+    print('Done Preceding')
 
 
 def tokenizerWithFilter(newText):
