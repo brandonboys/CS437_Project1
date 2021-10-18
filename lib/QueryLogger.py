@@ -1,5 +1,3 @@
-
-
 def logger(query):
     """
     the purpose here is to add on the querylog.txt to access a history of logs

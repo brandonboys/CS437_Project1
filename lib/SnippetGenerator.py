@@ -4,10 +4,10 @@ def snippetGenerator(originalQuery, sentance):
     Use TD-IDF if you can
 
     Example Input:
-    originalQuery="Russia"
-    sentance="Trump Loves Russia. Biden took bribe from Russia. I hate politics."
+    originalQuery="Russia China"
+    sentance="Trump Loves Russia. Biden took bribe from China. I hate politics."
     Example Output:
-    "Trump Loves Russia. Biden took bribe from Russia.
+    "Trump Loves Russia. Biden took bribe from China.
     """
     
     return sentance

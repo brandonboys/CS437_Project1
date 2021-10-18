@@ -1,10 +1,10 @@
 import sys
-from QuerryToTopfive import COSINE_TD_IDF_Ranking 
 import warnings
-from FrenchFilter import frenchFilter
-from SnippetGenerator import snippetGenerator
-from synonymSuggestor import querrySuggestor
-from QueryLogger import logger
+from lib.QuerryToTopfive import COSINE_TD_IDF_Ranking 
+from lib.FrenchFilter import frenchFilter
+from lib.SnippetGenerator import snippetGenerator
+from lib.synonymSuggestor import querrySuggestor
+from lib.QueryLogger import logger
 
 warnings.filterwarnings('ignore')
 

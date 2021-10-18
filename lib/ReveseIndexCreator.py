@@ -1,5 +1,5 @@
 #Inverted Index
-from TokenizeStemSWr import tokenizerWithFilter
+from lib.TokenizeStemSWr import tokenizerWithFilter
 import pandas as pd
 
 
@@ -10,7 +10,7 @@ def creatInverseDict(localSave=True):
     if localSave = True, it will save it into the current directory
     """
     dict = {}
-    df = pd.read_pickle('tweetsTable.pickle')
+    df = pd.read_pickle('data/tweetsTable.pickle')
     
     for index, tweet in df.iterrows():
 
@@ -43,6 +43,6 @@ def creatInverseDict(localSave=True):
                     dict[item][index] += 1#dict[item][index] + 1
         #input(tokenizerWithFilter(tweet))
     if localSave:
-        np.save('inverseIndexTable.npy', dict) 
+        np.save('data/inverseIndexTable.npy', dict) 
     else:
         return dict

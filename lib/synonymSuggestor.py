@@ -1,7 +1,7 @@
-from TokenizeStemSWr import tokenizerWithFilter
+from lib.TokenizeStemSWr import tokenizerWithFilter
 from nltk.corpus import wordnet
 import numpy as np
-dict = np.load('inverseIndexTable.npy',allow_pickle='TRUE').item()
+dict = np.load('data/inverseIndexTable.npy',allow_pickle='TRUE').item()
 
 def querrySuggestor(query):
     """
