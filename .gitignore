@@ -1,5 +1,5 @@
 *.ipynb
 .idea/
 data/
-lib/__pycache__/
+*/__pycache__/*
 log.txt
