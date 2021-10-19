@@ -17,7 +17,7 @@ def COSINE_TD_IDF_Ranking(query,dict=None,df=None,forceCreateRevIndex=False):
      [1323844576344449024,'I mean"," "I don\'t like Biden""," fine. "Biden isn\'t trustworthy","" fine. "Biden seems ugly?". Rude"," but fine. "Biden is a pinemarten." Problem. He is not a pinemarten. And nor is HE A FUCKING SOCIALIST.\n']]
         
     """
-    if df == None:
+    if df is None:
         df = pd.read_pickle('data/tweetsTable.pickle')
 
     if dict == None:
