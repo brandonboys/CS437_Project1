@@ -11,7 +11,7 @@ def creatInverseDict(localSave=True,dfInv=None):
     """
     df = dfInv
     dict = {}
-    if df == None:
+    if df is None:
         pd.read_pickle('data/tweetsTable.pickle')
 
     df['Tokens'] = object

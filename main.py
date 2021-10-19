@@ -41,7 +41,7 @@ out = COSINE_TD_IDF_Ranking(query)
 i = 0
 while i < 5:
     #print out title
-    print('Tweet ID' + str(out[0][i]))
+    print('Doc ID' + str(out[0][i]))
 
     #snip it
     #french filter it
