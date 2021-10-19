@@ -3,7 +3,6 @@ from lib.QuerryToTopfive import COSINE_TD_IDF_Ranking
 
 
 def snippetGenerator(originalQuery, sentance):
-    print(sentance)
     """
     The goal is to compute the most similar setentces to each query to create a snippet that consists of two sentances.
     Use TD-IDF if you can

@@ -13,6 +13,7 @@ except:
     nltk.download('wordnet')
     nltk.download('stopwords')
     print('Done Preceding')
+    stop_words = set(stopwords.words('english'))
 
 
 def tokenizerWithFilter(newText):
@@ -26,7 +27,7 @@ def tokenizerWithFilter(newText):
     for w in tokens:
         
         ## remove stop words
-        if w not in stop_words and (False == w.isnumeric()):
+        if w not in stop_words and (False == w.isnumeric()) and is_ascii(w):
 
             #to Lowercase
             w = w.lower()
@@ -35,3 +36,6 @@ def tokenizerWithFilter(newText):
             w = ps.stem(w)
             filtered_sentence.append(w)
     return filtered_sentence
+
+def is_ascii(s):
+    return all(ord(c) < 128 for c in s)
