@@ -14,7 +14,8 @@ if __name__ == "__main__":
     start_time = datetime.now()
     # check if reverse index is decompressed
     if not exists('data/inverseIndexTable.npy'):
-        print('Downloading the Inverse Index... Please Wait. Estimated Size 260-780 MB depending if google compresses it')
+        print('Downloading the Inverse Index... Please Wait. Estimated Size 260-780 MB depending if google compresses '
+              'it')
         gdd.download_file_from_google_drive(file_id='1daXFpn7lS2LTX59Xrdb9nkt4K2jx5pCb',
                                             dest_path='data/inverseIndexTable.npy',
                                             unzip=True)

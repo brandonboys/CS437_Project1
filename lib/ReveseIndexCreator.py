@@ -18,36 +18,32 @@ def creatInverseDict(localSave=True, dfInv=None):
     df['Length'] = 0
     df['TD_IDF'] = 0.0
 
-    
     for index, tweet in df.iterrows():
-
-        #create an array of tokens withot stop words
+        # create an array of tokens without stop words
         tokens_without_sw = tokenizerWithFilter(tweet['content'])
         
-        df.at[index,'Tokens'] = tokens_without_sw
-        df.at[index,'Length'] = len(tokens_without_sw)
+        df.at[index, 'Tokens'] = tokens_without_sw
+        df.at[index, 'Length'] = len(tokens_without_sw)
         count = True
         
-        #start appending if exits else create
+        # start appending if exits else create
         for item in tokens_without_sw:
-            if False==count:
-                #add word if not exits
-                if item not in dict:
-                    dict[item] = []
-                    dict[item].insert(0,index)
-
+            if not count:
                 if item in dict:
                     if dict[item][0] != index:
-                        dict[item].insert(0,index)
-
+                        dict[item].insert(0, index)
+                # add word if not exits
+                else:
+                    dict[item] = []
+                    dict[item].insert(0, index)
             else:
-                #uncomment this for inverted index with counter on each document
+                # uncomment this for inverted index with counter on each document
                 if item not in dict:
                     dict[item] = {}
                 if index not in dict[item]:
                     dict[item][index] = 1
                 elif index in dict[item]:
-                    dict[item][index] += 1#dict[item][index] + 1
+                    dict[item][index] += 1  # dict[item][index] + 1
     for word in dict:
         dict[word]['len'] = len(dict[word])
         
