@@ -78,5 +78,6 @@ def COSINE_TD_IDF_Ranking(query,dict=None,df=None,forceCreateRevIndex=False):
 
     df.TD_IDF = cosineRanks
     tweetID = df.sort_values('TD_IDF',ascending=False).head(5).index.values
+    title = df.sort_values('TD_IDF',ascending=False).head(5).title.values
     Tweets =df.sort_values('TD_IDF',ascending=False).head(5).content.values
-    return (tweetID,Tweets)
+    return (tweetID,title,Tweets)
