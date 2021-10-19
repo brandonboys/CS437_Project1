@@ -12,10 +12,11 @@ def querrySuggestor():
     Examples Ouput:
     query = Trump great policies are great
     """
+    print('Please Enter a query below... Press enter after a space for suggestions')
     ln = ' '
     first = True
     while ln[len(ln)-1] == " ":
-        ln = ln + input(ln)
+        ln = ln.strip() + input(ln)
         
         
         i = 0
