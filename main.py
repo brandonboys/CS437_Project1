@@ -42,7 +42,7 @@ if __name__ == "__main__":
     while i < 5:
         # print out title
         print('Doc ID' + str(out[0][i]))
-        print(str(round(out[1][i],3)) + "% Similarity")
+        print(str(round(float(out[3][i], 3))) + "% Similarity")
         print(str(out[1][i]))
 
         # snip it
