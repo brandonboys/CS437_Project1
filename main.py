@@ -7,7 +7,9 @@ from lib.QueryLogger import logger
 from os.path import exists
 from google_drive_downloader import GoogleDriveDownloader as gdd
 import pandas as pd
+from datetime import datetime
 
+start_time = datetime.now()
 # check if reverse index is decompressed
 if not exists('data/inverseIndexTable.npy'):
     print('Downloading the Inverse Index... Please Wait. Estimated Size 260-780 MB depending if google compresses it')
@@ -47,3 +49,5 @@ while i < 5:
 
 # log it
 logger(query)
+
+print(datetime.now() - start_time)
