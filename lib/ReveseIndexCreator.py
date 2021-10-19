@@ -3,7 +3,7 @@ from lib.TokenizeStemSWr import tokenizerWithFilter
 import pandas as pd
 
 
-def creatInverseDict(localSave=True,dfInv=None):
+def creatInverseDict(localSave=True, dfInv=None):
     """
     It will create a dictionary of the reverse index
     

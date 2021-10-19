@@ -40,7 +40,7 @@ def COSINE_TD_IDF_Ranking(query, dict_inverse_index=None, df=None, forceCreateRe
     # necessary values of calcualting TD-IDF of qerry
     queryTokens = tokenizerWithFilter(query)
     qLen = len(queryTokens)
-    qdf = pd.DataFrame(queryTokens,columns=['Words'])
+    qdf = pd.DataFrame(queryTokens, columns=['Words'])
     qdf['Count'] = 1.0
     qdf = qdf.groupby('Words').count()
     
@@ -71,9 +71,15 @@ def COSINE_TD_IDF_Ranking(query, dict_inverse_index=None, df=None, forceCreateRe
         cosineRanks.append((rTDIDF * qTDIDF).sum() /(np.sqrt((rTDIDF**2).sum()) * np.sqrt((qTDIDF**2).sum())))
 
     df.TD_IDF = cosineRanks
-    tweetID = df.sort_values('TD_IDF', ascending=False).head(5).index.values
-    title = df.sort_values('TD_IDF', ascending=False).head(5).columns.values
-    Tweets = df.sort_values('TD_IDF', ascending=False).head(5).content.values
-    print(df.sort_values('TD_IDF', ascending=False).head(5))
-    return (tweetID, title, Tweets)
+    five_sorted_values = df.sort_values('TD_IDF', ascending=False).head(5)
+    tweetID = five_sorted_values.index.values
+    Tweets = five_sorted_values.content.values
+
+    if 'title' in df:
+        title = five_sorted_values['title'].values
+        return (tweetID, title, Tweets)
+    else:
+        return (tweetID, Tweets)
+
+
 
