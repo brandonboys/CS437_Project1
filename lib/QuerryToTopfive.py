@@ -2,11 +2,12 @@ import numpy as np
 import pandas as pd
 from lib.TokenizeStemSWr import tokenizerWithFilter
 from lib.ReveseIndexCreator import creatInverseDict
-def COSINE_TD_IDF_Ranking(query):
+def COSINE_TD_IDF_Ranking(query,dict=None,df=None,forceCreateRevIndex=False):
     """
     Calculating TD-IDF is calculating the importantce of a word compared to a recource    
     Input Example:
     COSINE_TD_IDF_Ranking("I like Biden")
+    #note df and dict should be inside the "data" folder
     
     OutPut: (format array with tuples)    
     [[1324365009359654914,'I meant if you bet the odds exactly (I.e"," if Biden has a 69% chance to win X then you bet 69 dollars on a Biden win and 31 dollars on a Biden loss). Place enough bets like that and you should break even"," or nearly so"," in a good model\n']
@@ -16,17 +17,25 @@ def COSINE_TD_IDF_Ranking(query):
      [1323844576344449024,'I mean"," "I don\'t like Biden""," fine. "Biden isn\'t trustworthy","" fine. "Biden seems ugly?". Rude"," but fine. "Biden is a pinemarten." Problem. He is not a pinemarten. And nor is HE A FUCKING SOCIALIST.\n']]
         
     """
-    dict = {}
-    try:
-        dict = np.load('data/inverseIndexTable.npy',allow_pickle='TRUE').item()
-    except:
-        print('Unable To find inverse Index... We will create one, but it will take extra time')
-        creatInverseDict()
-        dict = np.load('data/inverseIndexTable.npy',allow_pickle='TRUE').item()
-        print('Done creating reverse index')
+    if df == None:
+        df = pd.read_pickle('data/tweetsTable.pickle')
 
+    if dict == None:
+        if forceCreateRevIndex == False:
+            try:
+                dict = np.load('data/inverseIndexTable.npy',allow_pickle='TRUE').item()
+            except:
+                print('Unable To find inverse Index... We will create one, This will take an hour..., email enochlev@gmail.com for the file and put it inside your data folder')
+                input('Press Enter to Continue')
+                creatInverseDict()
+                dict = np.load('data/inverseIndexTable.npy',allow_pickle='TRUE').item()
+                print('Done creating reverse index')
+        else:
+            # this is needed if we are trying to find cosinesmilarity of sentances inside a single article
+            dict = creatInverseDict(localSave=False,dfInv=df)
+        
 
-    df = pd.read_pickle('data/tweetsTable.pickle')
+    
 
     
     #necessary values of calcualting TD-IDF of qerry
@@ -37,7 +46,7 @@ def COSINE_TD_IDF_Ranking(query):
     qdf = qdf.groupby('Words').count()
     
     
-    R = 139799
+    R = df.shape[0]
     cosineRanks = []
     
     
@@ -55,7 +64,8 @@ def COSINE_TD_IDF_Ranking(query):
             if qToken in dict:
                 qTDIDF = np.append(qTDIDF,queryFreq.Count / qLen)
                 
-                RcD = len(dict[qToken])
+                #OLD:RcD = len(dict[qToken])
+                RcD = dict[qToken]['len']
                 
                 NsT = 0
                 if resourceID in dict[qToken]:
@@ -67,6 +77,6 @@ def COSINE_TD_IDF_Ranking(query):
         cosineRanks.append((rTDIDF * qTDIDF).sum() /(np.sqrt((rTDIDF**2).sum()) * np.sqrt((qTDIDF**2).sum())))
 
     df.TD_IDF = cosineRanks
-    tweetID = df.sort_values('TD_IDF',ascending=False).head(5).ID.values
-    Tweets =df.sort_values('TD_IDF',ascending=False).head(5).tweets.values
+    tweetID = df.sort_values('TD_IDF',ascending=False).head(5).index.values
+    Tweets =df.sort_values('TD_IDF',ascending=False).head(5).content.values
     return (tweetID,Tweets)

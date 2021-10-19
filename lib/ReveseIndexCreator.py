@@ -3,19 +3,26 @@ from lib.TokenizeStemSWr import tokenizerWithFilter
 import pandas as pd
 
 
-def creatInverseDict(localSave=True):
+def creatInverseDict(localSave=True,dfInv=None):
     """
     It will create a dictionary of the reverse index
     
     if localSave = True, it will save it into the current directory
     """
+    df = dfInv
     dict = {}
-    df = pd.read_pickle('data/tweetsTable.pickle')
+    if df == None:
+        pd.read_pickle('data/tweetsTable.pickle')
+
+    df['Tokens'] = object
+    df['Length'] = 0
+    df['TD_IDF'] = 0.0
+
     
     for index, tweet in df.iterrows():
 
         #create an array of tokens withot stop words
-        tokens_without_sw = tokenizerWithFilter(tweet['tweets'])
+        tokens_without_sw = tokenizerWithFilter(tweet['content'])
         
         df.at[index,'Tokens'] = tokens_without_sw
         df.at[index,'Length'] = len(tokens_without_sw)
@@ -41,7 +48,9 @@ def creatInverseDict(localSave=True):
                     dict[item][index] = 1
                 elif index in dict[item]:
                     dict[item][index] += 1#dict[item][index] + 1
-        #input(tokenizerWithFilter(tweet))
+    for word in dict:
+        dict[word]['len'] = len(dict[word])
+        
     if localSave:
         np.save('data/inverseIndexTable.npy', dict) 
     else:

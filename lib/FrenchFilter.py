@@ -1,5 +1,8 @@
 def frenchFilter(sentance):
     """
+    ######
+    Decpricated
+    ######
     Just filter french from a string with #@$% symbols
 
     example input:
