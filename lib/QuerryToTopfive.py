@@ -76,8 +76,14 @@ def COSINE_TD_IDF_Ranking(query, dict_inverse_index=None, df=None, forceCreateRe
     Tweets = five_sorted_values.content.values
 
     if 'title' in df:
+        rank = five_sorted_values['TD_IDF'].values
+        i = 0
+        while i < 5:
+            if rank[i] is np.nan:
+                rank[i] = 0
+            i = i + 1
         title = five_sorted_values['title'].values
-        return (tweetID, title, Tweets)
+        return (tweetID, title, Tweets, rank)
     else:
         return (tweetID, Tweets)
 
