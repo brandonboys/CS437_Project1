@@ -33,7 +33,7 @@ if __name__ == "__main__":
     query = ' '.join(sys.argv[1:])
 
     # ask for a suggestion and return what the user wanted
-    query = querrySuggestor()[0]
+    query = querrySuggestor(query)
 
     # get top 5 results
     out = COSINE_TD_IDF_Ranking(query)

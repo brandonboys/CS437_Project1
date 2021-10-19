@@ -19,9 +19,3 @@ wildf	bike	2021-10-19 15:26:07.143546
 wildf	bikeRack	2021-10-19 15:27:58.782573
 wildf	war computer hacking	2021-10-19 15:31:58.299232
 wildf	bike Rack	2021-10-19 15:34:57.731493
-brandonboys	war	2021-10-19 13:22:51.107929
-brandonboys	cheese	2021-10-19 13:26:42.372383
-brandonboys	cheese	2021-10-19 13:33:42.342351
-brandonboys	cheese	2021-10-19 13:38:19.009306
-enoch	merit define	2021-10-19 14:21:59.444571
-enoch	the	2021-10-19 14:30:15.069525
