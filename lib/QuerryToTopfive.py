@@ -2,7 +2,9 @@ import numpy as np
 import pandas as pd
 from lib.TokenizeStemSWr import tokenizerWithFilter
 from lib.ReveseIndexCreator import creatInverseDict
-def COSINE_TD_IDF_Ranking(query,dict=None,df=None,forceCreateRevIndex=False):
+
+
+def COSINE_TD_IDF_Ranking(query, dict_inverse_index=None, df=None, forceCreateRevIndex=False):
     """
     Calculating TD-IDF is calculating the importantce of a word compared to a recource    
     Input Example:
@@ -20,28 +22,25 @@ def COSINE_TD_IDF_Ranking(query,dict=None,df=None,forceCreateRevIndex=False):
     if df is None:
         df = pd.read_pickle('data/tweetsTable.pickle')
 
-    if dict == None:
-        if forceCreateRevIndex == False:
+    if dict_inverse_index is None:
+        if not forceCreateRevIndex:
             try:
-                dict = np.load('data/inverseIndexTable.npy',allow_pickle='TRUE').item()
+                dict_inverse_index = np.load('data/inverseIndexTable.npy', allow_pickle='TRUE').item()
             except:
-                print('Unable To find inverse Index... We will create one, This will take an hour..., email enochlev@gmail.com for the file and put it inside your data folder')
+                print('Unable To find inverse Index... We will create one, This will take an hour..., '
+                      'email enochlev@gmail.com for the file and put it inside your data folder')
                 input('Press Enter to Continue')
                 creatInverseDict()
-                dict = np.load('data/inverseIndexTable.npy',allow_pickle='TRUE').item()
+                dict_inverse_index = np.load('data/inverseIndexTable.npy', allow_pickle='TRUE').item()
                 print('Done creating reverse index')
         else:
             # this is needed if we are trying to find cosinesmilarity of sentances inside a single article
-            dict = creatInverseDict(localSave=False,dfInv=df)
-        
+            dict_inverse_index = creatInverseDict(localSave=False, dfInv=df)
 
-    
-
-    
-    #necessary values of calcualting TD-IDF of qerry
+    # necessary values of calcualting TD-IDF of qerry
     queryTokens = tokenizerWithFilter(query)
     qLen = len(queryTokens)
-    qdf=pd.DataFrame(queryTokens,columns=['Words'])
+    qdf = pd.DataFrame(queryTokens,columns=['Words'])
     qdf['Count'] = 1.0
     qdf = qdf.groupby('Words').count()
     
@@ -61,15 +60,15 @@ def COSINE_TD_IDF_Ranking(query,dict=None,df=None,forceCreateRevIndex=False):
         for qToken, queryFreq in qdf.iterrows():
 
             
-            if qToken in dict:
+            if qToken in dict_inverse_index:
                 qTDIDF = np.append(qTDIDF,queryFreq.Count / qLen)
                 
                 #OLD:RcD = len(dict[qToken])
-                RcD = dict[qToken]['len']
+                RcD = dict_inverse_index[qToken]['len']
                 
                 NsT = 0
-                if resourceID in dict[qToken]:
-                    NsT = dict[qToken][resourceID]
+                if resourceID in dict_inverse_index[qToken]:
+                    NsT = dict_inverse_index[qToken][resourceID]
                     
                 rTDIDF = np.append(rTDIDF,((NsT/NT) * (R/RcD)))
             

@@ -1,6 +1,7 @@
 import pandas as pd
 from lib.QuerryToTopfive import COSINE_TD_IDF_Ranking
 
+
 def snippetGenerator(originalQuery, sentance):
     print(sentance)
     """
@@ -18,18 +19,13 @@ def snippetGenerator(originalQuery, sentance):
 
     dfDoc = pd.DataFrame(sentances,columns=['content'])
     dfDoc.index += 1
+
+    out = COSINE_TD_IDF_Ranking(originalQuery, dict_inverse_index=None, df=dfDoc, forceCreateRevIndex=True)
+
+    # print out top two sentances as snippet
+    out_final = str(out[0]) + " " + str(out[1])
     
-
-    
-
-
-    out = COSINE_TD_IDF_Ranking(originalQuery,dict=None,df=dfDoc,forceCreateRevIndex=True)
-
-    #print out top two sentances as snippet
-    outFinal = out[0] + " " + out[1]
-    
-    return outFinal
-
+    return out_final
 
 
 import re
