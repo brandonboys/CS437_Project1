@@ -22,7 +22,14 @@ def snippetGenerator(originalQuery, sentance):
     out = COSINE_TD_IDF_Ranking(originalQuery, dict_inverse_index=None, df=dfDoc, forceCreateRevIndex=True)
 
     # print out top two sentances as snippet
-    out_final = str(out[1][0]) + " " + str(out[1][1])
+    try:
+        out_final = str(out[1][0]) + " " + str(out[1][1])
+    except:
+        print(sentances)
+        print(sentances)
+        print(out)
+        return str(out[1][0]) + " " + str(out[1][1])
+
     
     return out_final
 

@@ -1,7 +1,36 @@
 import numpy as np
 import pandas as pd
+import math
 from lib.TokenizeStemSWr import tokenizerWithFilter
 from lib.ReveseIndexCreator import creatInverseDict
+
+
+def TDIDF(R,qdf,dict_inverse_index,resourceID,Length,TDIDF_Vector)
+
+    NT = Length
+    if NT == 0:
+        return 0
+          
+    rTDIDF = np.empty(0)
+    qTDIDF = np.empty(0)
+    for qToken, queryFreq in qdf.iterrows():
+        if qToken in dict_inverse_index:
+            qTDIDF = np.append(qTDIDF,queryFreq.Count / qLen)
+                
+            RcD = len(dict_inverse_index[qToken])
+                
+            NsT = 0
+            if resourceID in dict_inverse_index[qToken]:
+    
+    
+                NsT = dict_inverse_index[qToken][resourceID]
+                    
+                rTDIDF = np.append(rTDIDF,((NsT/NT) * (math.log2((1+R)/(1+RcD))+1)))
+                    
+    cosineRanks = (rTDIDF * qTDIDF).sum() /(np.sqrt((rTDIDF**2).sum()) * TDIDF_Vector)
+    return cosinRanks
+
+TDIDF = np.vectorize(TDIDF,excluded=['qdf','dict_inverse_index'])
 
 
 def COSINE_TD_IDF_Ranking(query, dict_inverse_index=None, df=None, forceCreateRevIndex=False):
@@ -45,32 +74,34 @@ def COSINE_TD_IDF_Ranking(query, dict_inverse_index=None, df=None, forceCreateRe
     qdf = qdf.groupby('Words').count()
     
     R = df.shape[0]
-    cosineRanks = []
     
-    for resourceID, tweet in df.iterrows():
-        NT = tweet.Length
-        if NT == 0:
-            cosineRanks.append(np.NaN)
-            continue
+    df.TD_IDF = TDIDF(R,qdf,dict_inverse_index,df.index.values,df.Length.values,df.TDIDF_Vector.values)
+    
+#     for resourceID, tweet in df.iterrows():
+#         NT = tweet.Length
+#         if NT == 0:
+#             cosineRanks.append(np.NaN)
+#             continue
             
-        rTDIDF = np.empty(0)
-        qTDIDF = np.empty(0)
-        for qToken, queryFreq in qdf.iterrows():
-            if qToken in dict_inverse_index:
-                qTDIDF = np.append(qTDIDF,queryFreq.Count / qLen)
+#         rTDIDF = np.empty(0)
+#         qTDIDF = np.empty(0)
+#         for qToken, queryFreq in qdf.iterrows():
+#             if qToken in dict_inverse_index:
+#                 qTDIDF = np.append(qTDIDF,queryFreq.Count / qLen)
                 
-                # OLD:RcD = len(dict[qToken])
-                RcD = dict_inverse_index[qToken]['len']
+#                 # OLD:RcD = len(dict[qToken])
+#                 RcD = len(dict_inverse_index[qToken])
                 
-                NsT = 0
-                if resourceID in dict_inverse_index[qToken]:
-                    NsT = dict_inverse_index[qToken][resourceID]
+#                 NsT = 0
+#                 if resourceID in dict_inverse_index[qToken]:
+#                     NsT = dict_inverse_index[qToken][resourceID]
                     
-                rTDIDF = np.append(rTDIDF, ((NsT/NT) * (R/RcD)))
+#                 rTDIDF = np.append(rTDIDF, ((NsT/NT) * (R/RcD)))
                     
-        cosineRanks.append((rTDIDF * qTDIDF).sum() /(np.sqrt((rTDIDF**2).sum()) * np.sqrt((qTDIDF**2).sum())))
+#         cosineRanks.append((rTDIDF * qTDIDF).sum() /(np.sqrt((rTDIDF**2).sum()) * tweet.TDIDF_Vector))
 
-    df.TD_IDF = cosineRanks
+#     df.TD_IDF = cosineRanks
+
     five_sorted_values = df.sort_values('TD_IDF', ascending=False).head(5)
     tweetID = five_sorted_values.index.values
     Tweets = five_sorted_values.content.values
@@ -86,6 +117,3 @@ def COSINE_TD_IDF_Ranking(query, dict_inverse_index=None, df=None, forceCreateRe
         return (tweetID, title, Tweets, rank)
     else:
         return (tweetID, Tweets)
-
-
-

@@ -33,7 +33,7 @@ if __name__ == "__main__":
     query = ' '.join(sys.argv[1:])
 
     # ask for a suggestion and return what the user wanted
-    query = querrySuggestor()[0]
+    query = querrySuggestor()
 
     # get top 5 results
     out = COSINE_TD_IDF_Ranking(query)
@@ -48,6 +48,10 @@ if __name__ == "__main__":
         # snip it
         # french filter it
         # and display
+        print('--v--')
+        print(out)
+        print('--^--')
+        print()
         print(snippetGenerator(query, out[2][i]))
         print('\n')
         i += 1

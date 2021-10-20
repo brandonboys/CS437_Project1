@@ -1,6 +1,7 @@
 #Inverted Index
 from lib.TokenizeStemSWr import tokenizerWithFilter
 import pandas as pd
+import numpy as np
 
 
 def creatInverseDict(localSave=True, dfInv=None):
@@ -14,18 +15,18 @@ def creatInverseDict(localSave=True, dfInv=None):
     if df is None:
         pd.read_pickle('data/tweetsTable.pickle')
 
-    df['Tokens'] = object
     df['Length'] = 0
     df['TD_IDF'] = 0.0
-
+    df['TDIDF_Vector'] = 0.0
+    
+    R = df.shape[0]
+    
     for index, tweet in df.iterrows():
         # create an array of tokens without stop words
         tokens_without_sw = tokenizerWithFilter(tweet['content'])
         
-        df.at[index, 'Tokens'] = tokens_without_sw
         df.at[index, 'Length'] = len(tokens_without_sw)
         count = True
-        
         # start appending if exits else create
         for item in tokens_without_sw:
             if not count:
@@ -44,8 +45,23 @@ def creatInverseDict(localSave=True, dfInv=None):
                     dict[item][index] = 1
                 elif index in dict[item]:
                     dict[item][index] += 1  # dict[item][index] + 1
-    for word in dict:
-        dict[word]['len'] = len(dict[word])
+        
+        rTDIDF = np.empty(0)
+
+        NT = len(tokens_without_sw)  
+        
+        qdf = pd.DataFrame(tokens_without_sw, columns=['Words'])
+        qdf['Count'] = 1.0
+        qdf = qdf.groupby('Words').count()
+        
+        for token, count in qdf.iterrows():
+            NsT = count.Count
+            RcD = len(dict[token])
+            rTDIDF = np.append(rTDIDF, ((NsT/NT) * (math.log2((1+R)/(1+RcD))+1)))
+        df.at[index,'TDIDF_Vector'] = np.sqrt((rTDIDF**2).sum())
+            
+
+              
         
     if localSave:
         np.save('data/inverseIndexTable.npy', dict) 
