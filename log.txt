@@ -10,7 +10,6 @@ vorce	war drugs	2021-10-19 11:52:35.160129
 vorce	Spontaneous combustible objects	2021-10-19 11:58:54.607635
 vorce	war	2021-10-19 12:57:15.669774
 vorce	war	2021-10-19 13:00:36.244036
-<<<<<<< HEAD
 brandonboys	war	2021-10-19 13:22:51.107929
 brandonboys	cheese	2021-10-19 13:26:42.372383
 brandonboys	cheese	2021-10-19 13:33:42.342351
@@ -20,14 +19,3 @@ brandonboys	world peace	2021-10-19 14:02:48.980645
 enoch	merit define	2021-10-19 14:21:59.444571
 enoch	merit define	2021-10-19 14:21:59.444571
 enoch	the	2021-10-19 14:30:15.069525
-=======
-wildf	this is query	2021-10-19 14:00:44.158204
-wildf	merit define	2021-10-19 14:29:12.787738
-wildf	world peace	2021-10-19 15:10:52.633803
-wildf	world peace	2021-10-19 15:18:50.616498
-wildf	war	2021-10-19 15:23:23.533592
-wildf	bike	2021-10-19 15:26:07.143546
-wildf	bikeRack	2021-10-19 15:27:58.782573
-wildf	war computer hacking	2021-10-19 15:31:58.299232
-wildf	bike Rack	2021-10-19 15:34:57.731493
->>>>>>> 6d30d96ff9a41eb4511460116382acefd55fc9c8
