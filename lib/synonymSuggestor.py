@@ -12,29 +12,34 @@ def querrySuggestor():
     Examples Ouput:
     query = Trump great policies are great
     """
+    print('Please Enter a query below... Press enter after a space for suggestions')
     ln = ' '
     first = True
     while ln[len(ln)-1] == " ":
-        ln = ln + input(ln)
+        newinput = input(ln)
+        if newinput == "":
+            break
+        ln = ln.strip() + " " + newinput
         
         
         i = 0
         
         while first == False and i < sug.shape[0]:
-            
             if sug['Query'].values[i] == ln.strip().lower():
                 df.at[sug.index[i],'Used'] += 1
             i+=1
         
-        if " " + ln.strip() == ln:
+        if ln[len(ln)-1] != " ":
+
+            df.to_pickle('data/QuerryLog.pickle')
             return (ln.strip(),False)
         
         df['Score'] = df['Used']/df['Appeared']
-        sug = df[df.Query.str.startswith(ln.strip().lower(),na=False)].sort_values(['Score'],ascending=False).head(5)
+        sug = df[df.Query.str.startswith((ln.strip().lower() + ' '),na=False)].sort_values(['Score'],ascending=False).head(5)
         i = 0
         while i < sug.shape[0]:
             df.at[sug.index[i],'Appeared'] +=1
-            print("Score: " + str(sug['Score'].values[i]) + '   Query: '  + str(sug['Query'].values[i]))
+            print("Score: " + str(round(sug['Score'].values[i],3)) + '   Query: '  + str(sug['Query'].values[i]))
             i+=1
         first = False
     

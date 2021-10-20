@@ -22,11 +22,7 @@ def tokenizerWithFilter(newText):
     return a list of words
     """
     ## split words and remove punctuation
-    tokens=[]
-    try:
-        tokens = tokenizer.tokenize(newText)
-    except:
-        print(newText)
+    tokens = tokenizer.tokenize(newText)
     filtered_sentence = []
     for w in tokens:
         
