@@ -1,11 +1,14 @@
 import pandas as pd
-df =pd.read_pickle('data/QuerryLog.pickle')
+import getpass
+from datetime import datetime
+
 
 
 def querrySuggestor():
     """
     The purpose is to 
     """
+    df =pd.read_pickle('data/QuerryLog.pickle')
     print('Please Enter a query below... Press enter after a space for suggestions')
     ln = ' '
     first = True
@@ -18,8 +21,7 @@ def querrySuggestor():
         i = 0
         
         if ln[len(ln)-1] != " ":
-
-            return (ln.strip())
+            break
         
         sug = df[df.Query.str.startswith((ln.strip().lower() + ' '),na=False)].groupby(['Query','AnonID']).count()
         numOfSessions = sug.groupby(['AnonID']).count().shape[0]
@@ -31,4 +33,8 @@ def querrySuggestor():
             i+=1
         first = False
     
+
+    newRow = {'AnonID':getpass.getuser(),'Query':str(ln.strip()),'QueryTime':str(datetime.now()),'Used':0,'Appeared':0,'Score':0}
+    df =df.append(newRow,ignore_index=True)
+    df.to_pickle('data/QuerryLog.pickle')
     return (ln.strip())
