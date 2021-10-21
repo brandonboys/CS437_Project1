@@ -57,7 +57,7 @@ def creatInverseDict(localSave=True, dfInv=None):
         for token, count in qdf.iterrows():
             NsT = count.Count
             RcD = len(dict[token])
-            rTDIDF = np.append(rTDIDF, ((NsT/NT) * (math.log2((1+R)/(1+RcD))+1)))
+            rTDIDF = np.append(rTDIDF, ((NsT/NT) * (np.log2((1+R)/(1+RcD))+1)))
         df.at[index,'TDIDF_Vector'] = np.sqrt((rTDIDF**2).sum())
             
 

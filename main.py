@@ -39,19 +39,14 @@ if __name__ == "__main__":
     out = COSINE_TD_IDF_Ranking(query)
 
     i = 0
-    while i < 5:
+    while i < len(out[0]):
         # print out title
         print('Doc ID' + str(out[0][i]))
         print(str(round(float(out[3][i]), 3)*100) + "% Similarity")
         print(str(out[1][i]))
 
         # snip it
-        # french filter it
         # and display
-        print('--v--')
-        print(out)
-        print('--^--')
-        print()
         print(snippetGenerator(query, out[2][i]))
         print('\n')
         i += 1
