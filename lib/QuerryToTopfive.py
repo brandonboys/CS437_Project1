@@ -42,18 +42,17 @@ def COSINE_TD_IDF_Ranking(query, dict_inverse_index=None, df=None, forceCreateRe
 
     R = df.shape[0]
     
-    listDoc=[]
-    for item in tokenizerWithFilter(query):
-        if item in dict_inverse_index:
-            for doc in dict_inverse_index[item]:
-                
-                if (doc -1) in listDoc:
-                    pass
-                else:
-                    listDoc.append(doc-1)
-                    
-    df = df.iloc[listDoc]
-
+    # listDoc=[]
+    # for item in tokenizerWithFilter(query):
+    #     if item in dict_inverse_index:
+    #         for doc in dict_inverse_index[item]:
+    #
+    #             if (doc -1) in listDoc:
+    #                 pass
+    #             else:
+    #                 listDoc.append(doc-1)
+    #
+    # df = df.iloc[listDoc]
 
     queryTokens = tokenizerWithFilter(query)
     qLen = len(queryTokens)
@@ -61,7 +60,7 @@ def COSINE_TD_IDF_Ranking(query, dict_inverse_index=None, df=None, forceCreateRe
     qdf['Count'] = 1.0
     qdf = qdf.groupby('Words').count()
 
-    #df.TD_IDF = TDIDF(R,query,dict_inverse_index,df.index.values,df.Length.values,df.TDIDF_Vector.values)
+    # df.TD_IDF = TDIDF(R,query,dict_inverse_index,df.index.values,df.Length.values,df.TDIDF_Vector.values)
     cosineRanks = []
     for resourceID, tweet in df.iterrows():
         NT = tweet.Length
@@ -72,8 +71,6 @@ def COSINE_TD_IDF_Ranking(query, dict_inverse_index=None, df=None, forceCreateRe
         rTDIDF = np.empty(0)
         qTDIDF = np.empty(0)
         for qToken, queryFreq in qdf.iterrows():
-     
-            
             if qToken in dict_inverse_index:
                 qTDIDF = np.append(qTDIDF,queryFreq.Count / qLen)
       
@@ -82,13 +79,11 @@ def COSINE_TD_IDF_Ranking(query, dict_inverse_index=None, df=None, forceCreateRe
                 NsT = 0
                 if resourceID in dict_inverse_index[qToken]:
                     NsT = dict_inverse_index[qToken][resourceID]
-                #print(((NsT/NT) * (np.log2((1+R)/(1+RcD))+1)))
+                # print(((NsT/NT) * (np.log2((1+R)/(1+RcD))+1)))
 
-                    
                 rTDIDF = np.append(rTDIDF,((NsT/NT) * (np.log2((1+R)/(1+RcD))+1)))
-                
 
-        cosineRanks.append(((rTDIDF * qTDIDF).sum()) /((np.sqrt((qTDIDF**2).sum())) * tweet.TDIDF_Vector))
+        cosineRanks.append(((rTDIDF * qTDIDF).sum()) / ((np.sqrt((qTDIDF**2).sum())) * tweet.TDIDF_Vector))
 
     df.TD_IDF = cosineRanks
 

@@ -3,8 +3,7 @@ import getpass
 from datetime import datetime
 
 
-
-def querrySuggestor():
+def query_suggestor():
     """
     The purpose is to 
     """
