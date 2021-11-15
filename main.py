@@ -1,12 +1,7 @@
-import sys
 import warnings
-from lib.QuerryToTopfive import COSINE_TD_IDF_Ranking
+from lib.QuerryToTopfive import retreiveTop5WithCosineTDIDF
 from lib.SnippetGenerator import snippetGenerator
 from lib.QuerySuggestor import query_suggestor
-from lib.QueryLogger import logger
-from os.path import exists
-from google_drive_downloader import GoogleDriveDownloader as gdd
-import pandas as pd
 from datetime import datetime
 
 
@@ -19,7 +14,7 @@ if __name__ == "__main__":
     query = query_suggestor()
 
     # get top 5 results
-    out = COSINE_TD_IDF_Ranking(query)
+    out = retreiveTop5WithCosineTDIDF(query)
 
     i = 0
     while i < len(out[0]):
@@ -33,8 +28,5 @@ if __name__ == "__main__":
         print(snippetGenerator(query, out[2][i]))
         print('\n')
         i += 1
-
-    # log it
-    logger(query)
 
     print(datetime.now() - start_time)

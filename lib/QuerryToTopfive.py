@@ -5,43 +5,52 @@ from lib.TokenizeStemSWr import tokenizerWithFilter
 from lib.ReveseIndexCreator import creatInverseDict
 
 
-def COSINE_TD_IDF_Ranking(query, dict_inverse_index=None, df=None, forceCreateRevIndex=False):
+def retreiveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, forceCreateReverseIndex=False):
     """
     Calculating TD-IDF is calculating the importantce of a word compared to a recource    
-    Input Example:
-    COSINE_TD_IDF_Ranking("I like Biden")
-    #note df and dict should be inside the "data" folder
     
-    OutPut: (format array with tuples)    
-    [[1324365009359654914,'I meant if you bet the odds exactly (I.e"," if Biden has a 69% chance to win X then you bet 69 dollars on a Biden win and 31 dollars on a Biden loss). Place enough bets like that and you should break even"," or nearly so"," in a good model\n']
-     [1324556160570171392,'Right. That\'s why I ask"," because we\'re more likely to see GA and its 16 electoral votes flip to Biden tonight rather than NV or PA. So I\'m curious if the Biden campaign is counting AZ in the win column or not"," because if they are"," GA in the Biden column would give him the win.\n']
-     [1323973402294628354,"I'm not in the US and extremely anxious about Biden winning. It will be devastating. I dont think people realise how terrible a biden administration will be for US and world. Not liking trumps personality is not a good enough reason to vote for Biden. Gonna be a rough 4 years.\n"]
-     [1323451721054564352,'I really like Pete Buttigieg. I do hope Biden pulls him into the team! He has been essential to Bidens campaign efforts and should serve in some capacity for his relentless efforts to put Biden back into the White House.#BidenHarris2020']
-     [1323844576344449024,'I mean"," "I don\'t like Biden""," fine. "Biden isn\'t trustworthy","" fine. "Biden seems ugly?". Rude"," but fine. "Biden is a pinemarten." Problem. He is not a pinemarten. And nor is HE A FUCKING SOCIALIST.\n']]
+    query:
+        A query of keywords your looking for inside documents
+
+    inverseIndexDict:
+        the inverse index of the corpus
+
+        default = None : just take the inverse dictionary of the entire corpus located inside data/inverseIndexTable.npy
+
+    corpusDf:
+        a dataframe containing
+            docID, content(text), Length(number of tokens), TDIDF_Vector (precomputed TDIDF between all the words in the document 
+            and the document),TD_DF (Cosine rank of the TD-IDF)
+
+    forceCreateReverseIndex:
+         if no inverseIndexDict is found it will attempt to located it in data/inverseIndexTable.npy. The only exception 
+         to this is if this is set true, in which it will create an inverse index from the courpusDF 
         
     """
-    if df is None:
-        df = pd.read_pickle('data/tweetsTable.pickle')
+    if corpusDf is None:
+        corpusDf = pd.read_pickle('data/tweetsTable.pickle')
 
-    if dict_inverse_index is None:
-        if not forceCreateRevIndex:
+    if inverseIndexDict is None:
+        if not forceCreateReverseIndex:
             try:
-                dict_inverse_index = np.load('data/inverseIndexTable.npy', allow_pickle='TRUE').item()
+                inverseIndexDict = np.load('data/inverseIndexTable.npy', allow_pickle='TRUE').item()
             except:
                 print('Unable To find inverse Index... We will create one, This will take an hour..., '
                       'email enochlev@gmail.com for the file and put it inside your data folder')
                 input('Press Enter to Continue')
                 creatInverseDict()
-                dict_inverse_index = np.load('data/inverseIndexTable.npy', allow_pickle='TRUE').item()
+                inverseIndexDict = np.load('data/inverseIndexTable.npy', allow_pickle='TRUE').item()
                 print('Done creating reverse index')
         else:
             # this is needed if we are trying to find cosinesmilarity of sentances inside a single article
-            dict_inverse_index = creatInverseDict(localSave=False, dfInv=df)
+            inverseIndexDict = creatInverseDict(localSave=False, dfInv=corpusDf)
 
     # necessary values of calcualting TD-IDF of qerry
 
-    R = df.shape[0]
+    R = corpusDf.shape[0]
     
+
+    # This commented code should create a list of documents that contain any of the words in the query
     # listDoc=[]
     # for item in tokenizerWithFilter(query):
     #     if item in dict_inverse_index:
@@ -54,45 +63,91 @@ def COSINE_TD_IDF_Ranking(query, dict_inverse_index=None, df=None, forceCreateRe
     #
     # df = df.iloc[listDoc]
 
+    #tokenize the query
     queryTokens = tokenizerWithFilter(query)
+
+    #optain number of tokens in the query
+    #this is necessary for computing TD-IDF
     qLen = len(queryTokens)
+    
+    
+    #obtain a count of unique tokens
+    #
+    #Example
+    #if
+    #queryTokens =
+    #['like','frozen','frozen','favorite','movie']
+    #
+    #thenqdf will look somthing like this
+    #word   |   count
+    #like   |   1
+    #frozen |   2
+    #favorite|  1
     qdf = pd.DataFrame(queryTokens, columns=['Words'])
     qdf['Count'] = 1.0
     qdf = qdf.groupby('Words').count()
 
-    # df.TD_IDF = TDIDF(R,query,dict_inverse_index,df.index.values,df.Length.values,df.TDIDF_Vector.values)
+    #keep track of Cosine Rank between query and every document
+    #:::::::::::::::::::TD-IDF with smoothing:::::::::::::::::#
+    # NST: number specific word in document
+    # NT: number of words in document
+    # R: Number of Recources in the corups
+    # RcD: Number of number of documents contained a specific word
+    #
+    # Note that R/RCD is always 1 when computer TD-IDF between a word in a query and the entire query
+    #
+    #    NST         / log2(1+R)    \
+    #   -----   X   (-----------  + 1)
+    #     NT         \ 1 + RcD      /
     cosineRanks = []
-    for resourceID, tweet in df.iterrows():
+    for resourceID, tweet in corpusDf.iterrows():
         NT = tweet.Length
+
+        #document is empty
         if NT == 0:
             cosineRanks.append(np.NaN)
             continue
+        else:
+
+            #make word to query TDIDF and word to recouces TDIDF vectors
+            rTDIDF = np.empty(0)
+            qTDIDF = np.empty(0)
+            for qToken, queryFreq in qdf.iterrows():
+                if qToken in inverseIndexDict:
+                    qTDIDF = np.append(qTDIDF,queryFreq.Count / qLen)
+        
+                    RcD = len(inverseIndexDict[qToken])
+                    
+                    NsT = 0
+                    if resourceID in inverseIndexDict[qToken]:
+                        NsT = inverseIndexDict[qToken][resourceID]
+                    # print(((NsT/NT) * (np.log2((1+R)/(1+RcD))+1)))
+
+                    rTDIDF = np.append(rTDIDF,((NsT/NT) * (np.log2((1+R)/(1+RcD))+1)))
             
-        rTDIDF = np.empty(0)
-        qTDIDF = np.empty(0)
-        for qToken, queryFreq in qdf.iterrows():
-            if qToken in dict_inverse_index:
-                qTDIDF = np.append(qTDIDF,queryFreq.Count / qLen)
-      
-                RcD = len(dict_inverse_index[qToken])
-                
-                NsT = 0
-                if resourceID in dict_inverse_index[qToken]:
-                    NsT = dict_inverse_index[qToken][resourceID]
-                # print(((NsT/NT) * (np.log2((1+R)/(1+RcD))+1)))
 
-                rTDIDF = np.append(rTDIDF,((NsT/NT) * (np.log2((1+R)/(1+RcD))+1)))
+            #::::::::::::::::Cosine TD-IDF::::::::::::::::::::::#
+            #rTDIDF: vector of TD-IDF between every word and the query
+            #qTDIDF: vector between every word and the document
+            #
+            #             rTDIDF x qTDIDF
+            # ---------------------------------------
+            #  -/(SUM(qTDIDF^2)) * -/(SUM(rTDIDF^2))
+            #
+            #  note that -/(SUM(rTDIDF^2)) is precomputed and is sotred inside tweetsTable.pickl
+            #            #
+            cosineRanks.append(((rTDIDF * qTDIDF).sum()) / ((np.sqrt((qTDIDF**2).sum())) * tweet.TDIDF_Vector))
 
-        cosineRanks.append(((rTDIDF * qTDIDF).sum()) / ((np.sqrt((qTDIDF**2).sum())) * tweet.TDIDF_Vector))
 
-    df.TD_IDF = cosineRanks
+    #saved into TD_IDF
+    corpusDf['cosineTDIDF'] = cosineRanks
 
-    five_sorted_values = df.sort_values('TD_IDF', ascending=False).head(5)
+    five_sorted_values = corpusDf.sort_values('cosineTDIDF', ascending=False).head(5)
     tweetID = five_sorted_values.index.values
     Tweets = five_sorted_values.content.values
 
-    if 'title' in df:
-        rank = five_sorted_values['TD_IDF'].values
+    if 'title' in corpusDf:
+        rank = five_sorted_values['cosineTDIDF'].values
         i = 0
         while i < len(rank):
             if rank[i] is np.nan:

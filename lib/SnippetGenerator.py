@@ -1,25 +1,21 @@
 import pandas as pd
-from lib.QuerryToTopfive import COSINE_TD_IDF_Ranking
+from lib.QuerryToTopfive import retreiveTop5WithCosineTDIDF
 
 
 def snippetGenerator(originalQuery, sentance):
     """
     The goal is to compute the most similar setentces to each query to create a snippet that consists of two sentances.
     Use TD-IDF if you can
-
-    Example Input:
-    originalQuery="Russia China"
-    sentance="Trump Loves Russia. Biden took bribe from China. I hate politics."
-    Example Output:
-    "Trump Loves Russia. Biden took bribe from China.
     """
     sentances = split_into_sentences(sentance)
-    indexes = list(range(len(sentances)))
 
+    #create a dataFrame with the document devided into rows of the table
     dfDoc = pd.DataFrame(sentances,columns=['content'])
+    #Make index start with 1 and not 0
     dfDoc.index += 1
 
-    out = COSINE_TD_IDF_Ranking(originalQuery, dict_inverse_index=None, df=dfDoc, forceCreateRevIndex=True)
+    #pass in dfDoc as corpus and force create inverse dictionary
+    out = retreiveTop5WithCosineTDIDF(originalQuery, inverseIndexDict=None, corpusDf=dfDoc, forceCreateReverseIndex=True)
 
     # print out top two sentances as snippet
     if(len(out[1]) == 0 or len(out[1]) == 1):
