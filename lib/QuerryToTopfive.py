@@ -5,9 +5,9 @@ from lib.TokenizeStemSWr import tokenizerWithFilter
 from lib.ReveseIndexCreator import creatInverseDict
 
 
-def retreiveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, forceCreateReverseIndex=False):
+def retrieveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, forceCreateReverseIndex=False):
     """
-    Calculating TD-IDF is calculating the importantce of a word compared to a recource    
+    Calculating TD-IDF is calculating the importance of a word compared to a resource
     
     query:
         A query of keywords your looking for inside documents
@@ -23,8 +23,8 @@ def retreiveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, for
             and the document),TD_DF (Cosine rank of the TD-IDF)
 
     forceCreateReverseIndex:
-         if no inverseIndexDict is found it will attempt to located it in data/inverseIndexTable.npy. The only exception 
-         to this is if this is set true, in which it will create an inverse index from the courpusDF 
+         if no inverseIndexDict is found it will attempt to locate it in data/inverseIndexTable.npy. The only exception
+         to this is if this is set true, in which it will create an inverse index from the corpusDf
         
     """
     if corpusDf is None:
@@ -33,7 +33,7 @@ def retreiveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, for
     if inverseIndexDict is None:
         if not forceCreateReverseIndex:
             try:
-                inverseIndexDict = np.load('data/inverseIndexTable.npy', allow_pickle='TRUE').item()
+                inverseIndexDict = np.load('data/inverseIndexTable.npy', allow_pickle=True).item()
             except:
                 print('Unable To find inverse Index... We will create one, This will take an hour..., '
                       'email enochlev@gmail.com for the file and put it inside your data folder')
@@ -42,13 +42,12 @@ def retreiveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, for
                 inverseIndexDict = np.load('data/inverseIndexTable.npy', allow_pickle='TRUE').item()
                 print('Done creating reverse index')
         else:
-            # this is needed if we are trying to find cosinesmilarity of sentances inside a single article
+            # this is needed if we are trying to find cosine similarity of sentences inside a single article
             inverseIndexDict = creatInverseDict(localSave=False, dfInv=corpusDf)
 
-    # necessary values of calcualting TD-IDF of qerry
+    # necessary values of calcualting TD-IDF of query
 
-    R = corpusDf.shape[0]
-    
+    resource_count = corpusDf.shape[0]
 
     # This commented code should create a list of documents that contain any of the words in the query
     # listDoc=[]
@@ -63,11 +62,11 @@ def retreiveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, for
     #
     # df = df.iloc[listDoc]
 
-    #tokenize the query
+    # tokenize the query
     queryTokens = tokenizerWithFilter(query)
 
-    #optain number of tokens in the query
-    #this is necessary for computing TD-IDF
+    # obtain number of tokens in the query
+    # this is necessary for computing TD-IDF
     qLen = len(queryTokens)
     
     
@@ -91,12 +90,12 @@ def retreiveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, for
     #:::::::::::::::::::TD-IDF with smoothing:::::::::::::::::#
     # NST: number specific word in document
     # NT: number of words in document
-    # R: Number of Recources in the corups
+    # resource_count: Number of Recources in the corups
     # RcD: Number of number of documents contained a specific word
     #
-    # Note that R/RCD is always 1 when computer TD-IDF between a word in a query and the entire query
+    # Note that resource_count/RCD is always 1 when computer TD-IDF between a word in a query and the entire query
     #
-    #    NST         / log2(1+R)    \
+    #    NST         / log2(1+resource_count)    \
     #   -----   X   (-----------  + 1)
     #     NT         \ 1 + RcD      /
     cosineRanks = []
@@ -121,9 +120,9 @@ def retreiveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, for
                     NsT = 0
                     if resourceID in inverseIndexDict[qToken]:
                         NsT = inverseIndexDict[qToken][resourceID]
-                    # print(((NsT/NT) * (np.log2((1+R)/(1+RcD))+1)))
+                    # print(((NsT/NT) * (np.log2((1+resource_count)/(1+RcD))+1)))
 
-                    rTDIDF = np.append(rTDIDF,((NsT/NT) * (np.log2((1+R)/(1+RcD))+1)))
+                    rTDIDF = np.append(rTDIDF,((NsT/NT) * (np.log2((1+resource_count)/(1+RcD))+1)))
             
 
             #::::::::::::::::Cosine TD-IDF::::::::::::::::::::::#
