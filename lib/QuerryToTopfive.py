@@ -19,8 +19,8 @@ def retrieveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, for
 
     corpusDf:
         a dataframe containing
-            docID, content(text), Length(number of tokens), TDIDF_Vector (precomputed TDIDF between all the words in the document 
-            and the document),TD_DF (Cosine rank of the TD-IDF)
+            docID, content(text), Length(number of tokens), TDIDF_Vector (precomputed TFIDF between all the words in the
+            document and the document), TD_DF (Cosine rank of the TD-IDF)
 
     forceCreateReverseIndex:
          if no inverseIndexDict is found it will attempt to locate it in data/inverseIndexTable.npy. The only exception
@@ -65,80 +65,58 @@ def retrieveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, for
     # tokenize the query
     queryTokens = tokenizerWithFilter(query)
 
+    # obtain a count of unique tokens
+    #
+    # Example
+    # if
+    # queryTokens =
+    # ['like','frozen','frozen','favorite','movie']
+    #
+    # then qdf will look something like this
+    # word   |   count
+    # like   |   1
+    # frozen |   2
+    # favorite|  1
+    query_df = pd.DataFrame(queryTokens, columns=['Words'])
+    query_df['Count'] = 1.0
+    query_df = query_df.groupby('Words').count()
+
+    """
+    First attempt at smoothing (p1)
+    Equation for IDF smoothing: Pera's notes, "What is (web) search?", pp. 64
+    
+    """
     # obtain number of tokens in the query
     # this is necessary for computing TD-IDF
     qLen = len(queryTokens)
-    
-    
-    #obtain a count of unique tokens
-    #
-    #Example
-    #if
-    #queryTokens =
-    #['like','frozen','frozen','favorite','movie']
-    #
-    #thenqdf will look somthing like this
-    #word   |   count
-    #like   |   1
-    #frozen |   2
-    #favorite|  1
-    qdf = pd.DataFrame(queryTokens, columns=['Words'])
-    qdf['Count'] = 1.0
-    qdf = qdf.groupby('Words').count()
-
-    #keep track of Cosine Rank between query and every document
-    #:::::::::::::::::::TD-IDF with smoothing:::::::::::::::::#
-    # NST: number specific word in document
-    # NT: number of words in document
-    # resource_count: Number of Recources in the corups
-    # RcD: Number of number of documents contained a specific word
-    #
-    # Note that resource_count/RCD is always 1 when computer TD-IDF between a word in a query and the entire query
-    #
-    #    NST         / log2(1+resource_count)    \
-    #   -----   X   (-----------  + 1)
-    #     NT         \ 1 + RcD      /
     cosineRanks = []
-    for resourceID, tweet in corpusDf.iterrows():
-        NT = tweet.Length
+    for resourceID, document in corpusDf.iterrows():
+        doc_count = document.Length
 
-        #document is empty
-        if NT == 0:
-            cosineRanks.append(np.NaN)
-            continue
+        # document is empty
+        if doc_count == 0:
+            cosineRanks.append(0)
         else:
-
-            #make word to query TDIDF and word to recouces TDIDF vectors
-            rTDIDF = np.empty(0)
-            qTDIDF = np.empty(0)
-            for qToken, queryFreq in qdf.iterrows():
+            # make word to query TFIDF and word to resources TFIDF vectors
+            doc_TFIDF = np.empty(0)
+            query_TFIDF = np.empty(0)
+            for qToken, queryFreq in query_df.iterrows():
                 if qToken in inverseIndexDict:
-                    qTDIDF = np.append(qTDIDF,queryFreq.Count / qLen)
-        
-                    RcD = len(inverseIndexDict[qToken])
-                    
-                    NsT = 0
-                    if resourceID in inverseIndexDict[qToken]:
-                        NsT = inverseIndexDict[qToken][resourceID]
-                    # print(((NsT/NT) * (np.log2((1+resource_count)/(1+RcD))+1)))
+                    query_TFIDF = np.append(query_TFIDF, queryFreq.Count / qLen)
+                    doc_TFIDF = __compute_doc_tfidf(doc_TFIDF,
+                                                    inverseIndexDict,
+                                                    qToken,
+                                                    resourceID,
+                                                    doc_count,
+                                                    resource_count)
 
-                    rTDIDF = np.append(rTDIDF,((NsT/NT) * (np.log2((1+resource_count)/(1+RcD))+1)))
-            
-
-            #::::::::::::::::Cosine TD-IDF::::::::::::::::::::::#
-            #rTDIDF: vector of TD-IDF between every word and the query
-            #qTDIDF: vector between every word and the document
-            #
-            #             rTDIDF x qTDIDF
-            # ---------------------------------------
-            #  -/(SUM(qTDIDF^2)) * -/(SUM(rTDIDF^2))
-            #
-            #  note that -/(SUM(rTDIDF^2)) is precomputed and is sotred inside tweetsTable.pickl
-            #            #
-            cosineRanks.append(((rTDIDF * qTDIDF).sum()) / ((np.sqrt((qTDIDF**2).sum())) * tweet.TDIDF_Vector))
-
-
-    #saved into TD_IDF
+            # ::::::::::::::::Cosine TF-IDF::::::::::::::::::::::#
+            # Pera's notes: "What is (web) search?" pp. 61
+            # tfidf_resource_vector_length (document.TDIDF_Vector) is pre-computed to save time
+            tfidf_sums = (doc_TFIDF * query_TFIDF).sum()
+            tfidf_query_vector_length = (np.sqrt((query_TFIDF**2).sum()))
+            cosineRanks.append(tfidf_sums / (tfidf_query_vector_length * document.TDIDF_Vector))
+    # saved into TD_IDF
     corpusDf['cosineTDIDF'] = cosineRanks
 
     five_sorted_values = corpusDf.sort_values('cosineTDIDF', ascending=False).head(5)
@@ -156,3 +134,14 @@ def retrieveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, for
         return (tweetID, title, Tweets, rank)
     else:
         return (tweetID, Tweets)
+
+
+def __compute_doc_tfidf(doc_tfidf, inverse_index_dict, query_token, resourceID, doc_count, resource_count):
+    docs_with_token = len(inverse_index_dict[query_token])
+    curr_token_count = 0  # number of times the current token was seen in the current document
+    if resourceID in inverse_index_dict[query_token]:
+        curr_token_count = inverse_index_dict[query_token][resourceID]
+    # print(((curr_token_count/NT) * (np.log2((1+resource_count)/(1+docs_with_token))+1)))
+    doc_TF = curr_token_count / doc_count
+    doc_IDF = np.log2((1 + resource_count) / (docs_with_token + 1)) + 1  # with smoothing
+    return np.append(doc_tfidf, doc_TF * doc_IDF)
