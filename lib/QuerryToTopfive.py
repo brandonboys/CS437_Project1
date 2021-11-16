@@ -5,7 +5,7 @@ from lib.TokenizeStemSWr import tokenizerWithFilter
 from lib.ReveseIndexCreator import creatInverseDict
 
 
-def retrieveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, forceCreateReverseIndex=False):
+def retrieveTop5WithCosineTFIDF(query, inverseIndexDict=None, corpusDf=None, forceCreateReverseIndex=False):
     """
     Calculating TD-IDF is calculating the importance of a word compared to a resource
     
@@ -88,13 +88,15 @@ def retrieveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, for
     """
     # obtain number of tokens in the query
     # this is necessary for computing TD-IDF
+    #mostCommon
     qLen = len(queryTokens)
     cosineRanks = []
     for resourceID, document in corpusDf.iterrows():
-        doc_count = document.Length
+        mostCommonTokenCount = document.mostCommonTokenCount
+        #doc_count = document.Length
 
         # document is empty
-        if doc_count == 0:
+        if mostCommonTokenCount == 0:
             cosineRanks.append(0)
         else:
             # make word to query TFIDF and word to resources TFIDF vectors
@@ -107,7 +109,7 @@ def retrieveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, for
                                                     inverseIndexDict,
                                                     qToken,
                                                     resourceID,
-                                                    doc_count,
+                                                    mostCommonTokenCount,
                                                     resource_count)
 
             # ::::::::::::::::Cosine TF-IDF::::::::::::::::::::::#
@@ -115,16 +117,16 @@ def retrieveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, for
             # tfidf_resource_vector_length (document.TDIDF_Vector) is pre-computed to save time
             tfidf_sums = (doc_TFIDF * query_TFIDF).sum()
             tfidf_query_vector_length = (np.sqrt((query_TFIDF**2).sum()))
-            cosineRanks.append(tfidf_sums / (tfidf_query_vector_length * document.TDIDF_Vector))
+            cosineRanks.append(tfidf_sums / (tfidf_query_vector_length * document.TFIDF_Vector))
     # saved into TD_IDF
-    corpusDf['cosineTDIDF'] = cosineRanks
+    corpusDf['cosineTFIDF'] = cosineRanks
 
-    five_sorted_values = corpusDf.sort_values('cosineTDIDF', ascending=False).head(5)
+    five_sorted_values = corpusDf.sort_values('cosineTFIDF', ascending=False).head(5)
     tweetID = five_sorted_values.index.values
     Tweets = five_sorted_values.content.values
 
     if 'title' in corpusDf:
-        rank = five_sorted_values['cosineTDIDF'].values
+        rank = five_sorted_values['cosineTFIDF'].values
         i = 0
         while i < len(rank):
             if rank[i] is np.nan:
@@ -136,12 +138,12 @@ def retrieveTop5WithCosineTDIDF(query, inverseIndexDict=None, corpusDf=None, for
         return (tweetID, Tweets)
 
 
-def __compute_doc_tfidf(doc_tfidf, inverse_index_dict, query_token, resourceID, doc_count, resource_count):
+def __compute_doc_tfidf(doc_tfidf, inverse_index_dict, query_token, resourceID, mostCommonTokenCount, resource_count,k =.01):
     docs_with_token = len(inverse_index_dict[query_token])
     curr_token_count = 0  # number of times the current token was seen in the current document
     if resourceID in inverse_index_dict[query_token]:
         curr_token_count = inverse_index_dict[query_token][resourceID]
     # print(((curr_token_count/NT) * (np.log2((1+resource_count)/(1+docs_with_token))+1)))
-    doc_TF = curr_token_count / doc_count
+    doc_TF = (curr_token_count / mostCommonTokenCount) * (1-k) + k
     doc_IDF = np.log2((1 + resource_count) / (docs_with_token + 1)) + 1  # with smoothing
     return np.append(doc_tfidf, doc_TF * doc_IDF)

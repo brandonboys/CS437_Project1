@@ -1,5 +1,5 @@
 import pandas as pd
-from lib.QuerryToTopfive import retrieveTop5WithCosineTDIDF
+from lib.QuerryToTopfive import retrieveTop5WithCosineTFIDF
 
 
 def snippetGenerator(originalQuery, sentance):
@@ -15,7 +15,7 @@ def snippetGenerator(originalQuery, sentance):
     dfDoc.index += 1
 
     #pass in dfDoc as corpus and force create inverse dictionary
-    out = retrieveTop5WithCosineTDIDF(originalQuery, inverseIndexDict=None, corpusDf=dfDoc, forceCreateReverseIndex=True)
+    out = retrieveTop5WithCosineTFIDF(originalQuery, inverseIndexDict=None, corpusDf=dfDoc, forceCreateReverseIndex=True)
 
     # print out top two sentances as snippet
     if(len(out[1]) == 0 or len(out[1]) == 1):

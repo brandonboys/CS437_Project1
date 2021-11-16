@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 
-def creatInverseDict(localSave=True, dfInv=None):
+def creatInverseDict(localSave=True, dfInv=None,k = .01,titleExists = False):
     """
     It will create a dictionary of the reverse index
     
@@ -16,16 +16,27 @@ def creatInverseDict(localSave=True, dfInv=None):
         pd.read_pickle('data/tweetsTable.pickle')
 
     df['Length'] = 0
-    df['TD_IDF'] = 0.0
-    df['TDIDF_Vector'] = 0.0
+    df['TF_IDF'] = 0.0
+    df['TFIDF_Vector'] = 0.0
     
     R = df.shape[0]
     
-    for index, tweet in df.iterrows():
+    for index, document in df.iterrows():
         # create an array of tokens without stop words
-        tokens_without_sw = tokenizerWithFilter(tweet['content'])
+
+        rawDocument = document['content']
+        if 'title' in document:#determins weather we are looking at corpus or generating snippet
+            rawDocument = rawDocument + (" " + document['title'])*3
+
+        tokens_without_sw = tokenizerWithFilter(rawDocument)
         
-        df.at[index, 'Length'] = len(tokens_without_sw)
+
+
+        #df.at[index, 'Length'] = len(tokens_without_sw)
+        #change one change this to 
+        countOfMostCommentToken = mostCommonElementCount(tokens_without_sw)
+        df.at[index,'mostCommonTokenCount'] = countOfMostCommentToken
+        
         count = True
         # start appending if exits else create
         for item in tokens_without_sw:
@@ -57,8 +68,10 @@ def creatInverseDict(localSave=True, dfInv=None):
         for token, count in qdf.iterrows():
             NsT = count.Count
             RcD = len(dict[token])
-            rTDIDF = np.append(rTDIDF, ((NsT/NT) * (np.log2((1+R)/(1+RcD))+1)))
-        df.at[index,'TDIDF_Vector'] = np.sqrt((rTDIDF**2).sum())
+            TF = (NsT/countOfMostCommentToken)*(1-k) + k
+            IDF = (np.log2((1+R)/(1+RcD))+1)
+            rTDIDF = np.append(rTDIDF, TF*IDF)
+        df.at[index,'TFIDF_Vector'] = np.sqrt((rTDIDF**2).sum())
             
 
               
@@ -67,3 +80,17 @@ def creatInverseDict(localSave=True, dfInv=None):
         np.save('data/inverseIndexTable.npy', dict) 
     else:
         return dict
+
+from collections import Counter
+def mostCommonElementCount(tokenList):
+    """
+    Returns the count of the most common element
+
+    Example:
+        myList = ['hello','hi','hi','mostCommon']
+
+        mostCommonElementCount(myList)
+        >>>> 2
+    """
+    data = Counter(tokenList)
+    return data[max(tokenList, key=data.get)]

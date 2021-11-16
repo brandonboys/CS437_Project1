@@ -1,5 +1,5 @@
 import warnings
-from lib.QuerryToTopfive import retrieveTop5WithCosineTDIDF
+from lib.QuerryToTopfive import retrieveTop5WithCosineTFIDF
 from lib.SnippetGenerator import snippetGenerator
 from lib.QuerySuggestor import query_suggestor
 from datetime import datetime
@@ -14,7 +14,7 @@ if __name__ == "__main__":
     query = query_suggestor()
 
     # get top 5 results
-    out = retrieveTop5WithCosineTDIDF(query)
+    out = retrieveTop5WithCosineTFIDF(query)
 
     i = 0
     while i < len(out[0]):
