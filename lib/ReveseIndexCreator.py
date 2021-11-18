@@ -15,7 +15,7 @@ def creatInverseDict(localSave=True, dfInv=None,k = .01,titleExists = False):
     if df is None:
         pd.read_pickle('data/tweetsTable.pickle')
 
-    df['Length'] = 0
+
     df['TF_IDF'] = 0.0
     df['TFIDF_Vector'] = 0.0
     
@@ -74,10 +74,10 @@ def creatInverseDict(localSave=True, dfInv=None,k = .01,titleExists = False):
         df.at[index,'TFIDF_Vector'] = np.sqrt((rTDIDF**2).sum())
             
 
-              
-        
+    dict = pd.DataFrame(dict.items(),columns=['index','token']).set_index(['index'],drop=True)          
+    
     if localSave:
-        np.save('data/inverseIndexTable.npy', dict) 
+        dict.to_pickle('data/inverseIndexTable.pickle')
     else:
         return dict
 
@@ -92,5 +92,7 @@ def mostCommonElementCount(tokenList):
         mostCommonElementCount(myList)
         >>>> 2
     """
+    if len(tokenList) == 0:
+        return 1
     data = Counter(tokenList)
     return data[max(tokenList, key=data.get)]

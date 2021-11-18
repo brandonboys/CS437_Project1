@@ -1,6 +1,7 @@
 import pandas as pd
 import getpass
 from datetime import datetime
+import os.path
 
 
 def query_suggestor():
@@ -11,7 +12,8 @@ def query_suggestor():
     QueryLog.pickle contains list of queries from other users
     We will use this to make suggestions to the user for other
     queries they can make"""
-    df = pd.read_pickle('data/QueryLog.pickle')
+
+    df = pd.read_pickle('data/QuerryLog.pickle')
     print('Please Enter a query below... Press enter after a space for suggestions')
 
     """initialize the whole query to an empty string.  This will become

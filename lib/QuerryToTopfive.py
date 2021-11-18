@@ -33,13 +33,13 @@ def retrieveTop5WithCosineTFIDF(query, inverseIndexDict=None, corpusDf=None, for
     if inverseIndexDict is None:
         if not forceCreateReverseIndex:
             try:
-                inverseIndexDict = np.load('data/inverseIndexTable.npy', allow_pickle=True).item()
+                inverseIndexDict = pd.read_pickle('data/inverseIndexTable.pickle')
             except:
                 print('Unable To find inverse Index... We will create one, This will take an hour..., '
                       'email enochlev@gmail.com for the file and put it inside your data folder')
                 input('Press Enter to Continue')
                 creatInverseDict()
-                inverseIndexDict = np.load('data/inverseIndexTable.npy', allow_pickle='TRUE').item()
+                inverseIndexDict = pd.read_pickle('data/inverseIndexTable.pickle')
                 print('Done creating reverse index')
         else:
             # this is needed if we are trying to find cosine similarity of sentences inside a single article
@@ -49,21 +49,24 @@ def retrieveTop5WithCosineTFIDF(query, inverseIndexDict=None, corpusDf=None, for
 
     resource_count = corpusDf.shape[0]
 
-    # This commented code should create a list of documents that contain any of the words in the query
-    # listDoc=[]
-    # for item in tokenizerWithFilter(query):
-    #     if item in dict_inverse_index:
-    #         for doc in dict_inverse_index[item]:
-    #
-    #             if (doc -1) in listDoc:
-    #                 pass
-    #             else:
-    #                 listDoc.append(doc-1)
-    #
-    # df = df.iloc[listDoc]
+    #This commented code should create a list of documents that contain any of the words in the query
+    
+    queryTokens = tokenizerWithFilter(query)
+    
+    listDoc=[]
+
+    for item in queryTokens:
+        if item in inverseIndexDict.index:
+            for doc in inverseIndexDict[item:item].values[0][0]:
+                if (doc -1) in listDoc:
+                    pass
+                else:
+                    listDoc.append(doc-1)
+    
+    corpusDf = corpusDf.iloc[listDoc]
 
     # tokenize the query
-    queryTokens = tokenizerWithFilter(query)
+    
 
     # obtain a count of unique tokens
     #
@@ -91,7 +94,7 @@ def retrieveTop5WithCosineTFIDF(query, inverseIndexDict=None, corpusDf=None, for
     #mostCommon
     qLen = len(queryTokens)
     cosineRanks = []
-    for resourceID, document in corpusDf.iterrows():
+    for resourceID, document in corpusDf[['mostCommonTokenCount','TFIDF_Vector']].iterrows():
         mostCommonTokenCount = document.mostCommonTokenCount
         #doc_count = document.Length
 
@@ -103,7 +106,7 @@ def retrieveTop5WithCosineTFIDF(query, inverseIndexDict=None, corpusDf=None, for
             doc_TFIDF = np.empty(0)
             query_TFIDF = np.empty(0)
             for qToken, queryFreq in query_df.iterrows():
-                if qToken in inverseIndexDict:
+                if qToken in inverseIndexDict.index:
                     query_TFIDF = np.append(query_TFIDF, queryFreq.Count / qLen)
                     doc_TFIDF = __compute_doc_tfidf(doc_TFIDF,
                                                     inverseIndexDict,
@@ -139,10 +142,11 @@ def retrieveTop5WithCosineTFIDF(query, inverseIndexDict=None, corpusDf=None, for
 
 
 def __compute_doc_tfidf(doc_tfidf, inverse_index_dict, query_token, resourceID, mostCommonTokenCount, resource_count,k =.01):
-    docs_with_token = len(inverse_index_dict[query_token])
+    dictList = inverse_index_dict[query_token:query_token].values[0][0]
+    docs_with_token = len(dictList)
     curr_token_count = 0  # number of times the current token was seen in the current document
-    if resourceID in inverse_index_dict[query_token]:
-        curr_token_count = inverse_index_dict[query_token][resourceID]
+    if resourceID in dictList:
+        curr_token_count = dictList[resourceID]
     # print(((curr_token_count/NT) * (np.log2((1+resource_count)/(1+docs_with_token))+1)))
     doc_TF = (curr_token_count / mostCommonTokenCount) * (1-k) + k
     doc_IDF = np.log2((1 + resource_count) / (docs_with_token + 1)) + 1  # with smoothing
